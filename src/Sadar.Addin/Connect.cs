@@ -89,6 +89,11 @@ namespace Sadar.Addin
                   supertip=""פותח את פונקציית ההשוואה של וורד מול הגיבוי שנשמר לפני הסידור.""/>
         </group>
         <group id=""SadarSettingsGroup"" label=""הגדרות"">
+          <button id=""SadarEngine"" label=""מנוע""
+                  size=""large"" imageMso=""ServerConnection""
+                  onAction=""OnEngine""
+                  screentip=""בחירת המנוע וחיבורו""
+                  supertip=""קלוד, ג'מיני או ChatGPT — דרך המנוי שלכם או דרך מפתח API.""/>
           <button id=""SadarRules"" label=""כללים""
                   size=""large"" imageMso=""RulesAndAlerts""
                   onAction=""OnRules""
@@ -138,6 +143,22 @@ namespace Sadar.Addin
             catch (Exception ex) { Error("שגיאה בהשוואה", ex); }
         }
 
+        public void OnEngine(object control)
+        {
+            try
+            {
+                using (var dlg = new EngineForm(SettingsStore.LoadEngine()))
+                {
+                    if (dlg.ShowDialog() == DialogResult.OK)
+                    {
+                        SettingsStore.SaveEngine(dlg.Settings);
+                        Info("המנוע נשמר", "המנוע שנבחר: " + dlg.Settings.Info.DisplayName);
+                    }
+                }
+            }
+            catch (Exception ex) { Error("שגיאה בהגדרות המנוע", ex); }
+        }
+
         public void OnRules(object control)
         {
             try
@@ -155,23 +176,36 @@ namespace Sadar.Addin
         {
             try
             {
-                var engine = new Core.Engine.ClaudeCodeEngine();
+                var settings = SettingsStore.LoadEngine();
                 Cursor.Current = Cursors.WaitCursor;
-                string problem;
-                try { problem = engine.CheckAvailability(); }
+
+                System.Collections.Generic.List<Core.Engine.EngineFactory.EngineStatus> survey;
+                try { survey = Core.Engine.EngineFactory.Survey(settings, true); }
                 finally { Cursor.Current = Cursors.Default; }
 
-                if (problem == null)
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("המנוע שנבחר: " + settings.Info.DisplayName);
+                sb.AppendLine("מודל: " + settings.EffectiveModel);
+                sb.AppendLine();
+
+                int ready = 0;
+                foreach (var st in survey)
                 {
-                    Info("החיבור תקין",
-                        "Claude Code מותקן ומחובר." + Environment.NewLine + Environment.NewLine +
-                        "נתיב: " + engine.ExePath);
+                    bool ok = st.Ready && st.Configured;
+                    if (ok) ready++;
+                    sb.Append(st.Info.Id == settings.EngineId ? "> " : "   ");
+                    sb.Append(st.Info.DisplayName).Append(" — ");
+                    sb.AppendLine(ok ? "מוכן" : (st.Problem ?? "לא מוגדר"));
                 }
+
+                sb.AppendLine();
+                if (ready == 0)
+                    sb.AppendLine("אף מנוע אינו מוכן. \"ניקוי בלבד\" עדיין עובד — הוא רץ מקומית.");
                 else
-                {
-                    Warn("החיבור אינו מוכן", problem + Environment.NewLine + Environment.NewLine +
-                        "עד שהחיבור יתוקן אפשר להשתמש ב\"ניקוי בלבד\", שרץ מקומית.");
-                }
+                    sb.AppendLine(ready + " מנועים מוכנים לשימוש.");
+
+                if (ready > 0) Info("בדיקת חיבור", sb.ToString());
+                else Warn("בדיקת חיבור", sb.ToString());
             }
             catch (Exception ex) { Error("שגיאה בבדיקת החיבור", ex); }
         }

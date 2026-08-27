@@ -64,6 +64,8 @@ namespace Sadar.Cli
             TestSpaceRemovedAcrossRunBoundary();
             TestTabsAndNbspCleaned();
 
+            QaEngineTests.Run(Section, Check);
+
             Section("חלונות");
             TestWindowsCoverExactMultiple();
             TestWindowsCoverOffByOne();

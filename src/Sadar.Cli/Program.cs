@@ -35,6 +35,8 @@ namespace Sadar.Cli
                     case "clean": return CmdClean(args);
                     case "rules": return CmdRules(args);
                     case "doctor": return CmdDoctor();
+                    case "engines": return CmdEngines(args);
+                    case "key": return CmdKey(args);
                     case "selftest": return SelfTest.Run();
                     case "qa": return QaTests.Run();
                     default: Usage(); return 1;
@@ -60,12 +62,17 @@ namespace Sadar.Cli
   sadar apply <file.docx> [אפשרויות]   מנתח, מחיל ומאמת
   sadar clean <file.docx> [--out X]    ניקוי דטרמיניסטי בלבד, בלי מנוע
   sadar rules init <out.json>          יוצר קובץ כללים לדוגמה
-  sadar doctor                         בודק אם Claude Code מותקן ומחובר
+  sadar engines                        רשימת המנועים ומצב כל אחד
+  sadar engines use <id>               בוחר מנוע ברירת מחדל
+  sadar key <id> <מפתח>                שומר מפתח API (מוצפן, למשתמש הזה בלבד)
+  sadar key <id> --clear               מוחק מפתח
+  sadar doctor                         בודק את כל המנועים
   sadar selftest                       מריץ את בדיקות הליבה
   sadar qa                             בדיקות קצה והתנהגות עוינת
 
 אפשרויות:
-  --engine mock|claude   ברירת מחדל: mock
+  --engine <id>          מנוע לשימוש. mock = בדיקות בלי רשת.
+                         ברירת המחדל נלקחת מההגדרות השמורות
   --rules <file.json>    קובץ כללים
   --out <file.docx>      קובץ יעד (ברירת מחדל: דריסה עם גיבוי)
   --model <name>         מודל, ברירת מחדל sonnet
@@ -116,18 +123,14 @@ namespace Sadar.Cli
         {
             string path = Require(args, 1, "נתיב קובץ docx");
             var rules = LoadRules(args);
-            string engineName = Opt(args, "--engine") ?? "mock";
+            string engineName = Opt(args, "--engine");
             string outPath = Opt(args, "--out");
 
             using (var doc = new OpenXmlDocumentAdapter(path))
             {
                 var snapshot = doc.ReadAll();
 
-                IDecisionEngine engine;
-                if (string.Equals(engineName, "claude", StringComparison.OrdinalIgnoreCase))
-                    engine = new ClaudeCodeEngine(null, Opt(args, "--model") ?? "sonnet");
-                else
-                    engine = new MockEngine(snapshot);
+                var engine = BuildEngine(engineName, args, snapshot);
 
                 Console.WriteLine("מנוע: " + engine.Name);
 
@@ -234,49 +237,200 @@ namespace Sadar.Cli
             return 0;
         }
 
-        private static int CmdDoctor()
+        /// <summary>
+        /// בוחר מנוע: הדגל מנצח, אחריו ההגדרות השמורות.
+        /// "mock" נשאר תמיד זמין — הוא מה שמאפשר לבדוק את כל הצינור בלי רשת.
+        /// </summary>
+        private static IDecisionEngine BuildEngine(string engineName, string[] args,
+                                                   System.Collections.Generic.List<ParagraphInfo> snapshot)
         {
-            Console.WriteLine("בודק את הסביבה...");
-            Console.WriteLine();
+            if (string.Equals(engineName, "mock", StringComparison.OrdinalIgnoreCase))
+                return new MockEngine(snapshot);
 
-            Console.WriteLine("מיקומים אפשריים של Claude Code:");
-            bool any = false;
-            foreach (string p in ClaudeCodeEngine.CandidatePaths())
+            var settings = EngineSettings.LoadDefault();
+
+            string model = Opt(args, "--model");
+            if (!string.IsNullOrEmpty(model)) settings.Model = model;
+
+            string timeout = Opt(args, "--timeout");
+            int seconds;
+            if (timeout != null && int.TryParse(timeout, out seconds)) settings.TimeoutSeconds = seconds;
+
+            if (string.IsNullOrEmpty(engineName)) return EngineFactory.Create(settings);
+
+            // "claude" נשמר כשם נוח למנוע ברירת המחדל
+            if (string.Equals(engineName, "claude", StringComparison.OrdinalIgnoreCase))
+                engineName = "claude-cli";
+
+            return EngineFactory.CreateById(engineName, settings);
+        }
+
+        private static int CmdEngines(string[] args)
+        {
+            var settings = EngineSettings.LoadDefault();
+
+            // בחירת מנוע ברירת מחדל
+            if (string.Equals(Arg(args, 1), "use", StringComparison.OrdinalIgnoreCase))
             {
-                bool exists = File.Exists(p);
-                if (exists) any = true;
-                Console.WriteLine("  " + (exists ? "[נמצא] " : "[חסר]  ") + p);
-            }
+                string id = Arg(args, 2);
+                var info = EngineInfo.ById(id);
+                if (info == null)
+                {
+                    Console.WriteLine("מנוע לא מוכר: " + (id ?? "(חסר)"));
+                    Console.WriteLine("הרשימה: sadar engines");
+                    return 1;
+                }
 
-            if (!any)
-            {
-                Console.WriteLine();
-                Console.WriteLine("לא נמצאה התקנה. להתקנה:");
-                Console.WriteLine("  npm install -g @anthropic-ai/claude-code");
-                Console.WriteLine("  claude   ואז   /login");
-                return 1;
-            }
-
-            var engine = new ClaudeCodeEngine();
-            Console.WriteLine();
-            Console.WriteLine("נבחר: " + engine.ExePath);
-            Console.WriteLine("בודק חיבור...");
-
-            string problem = engine.CheckAvailability();
-            if (problem == null)
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("תקין — המנוע מחובר ומוכן.");
-                Console.ResetColor();
+                settings.EngineId = info.Id;
+                settings.SaveDefault();
+                Console.WriteLine("המנוע נקבע ל: " + info.DisplayName);
+                if (info.NeedsApiKey && !settings.HasKey(info.Id))
+                    Console.WriteLine("עדיין חסר מפתח. הריצו: sadar key " + info.Id + " <מפתח>");
                 return 0;
             }
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(problem);
-            Console.ResetColor();
-            return 1;
+            bool deep = Has(args, "--check");
+
+            Console.WriteLine("המנוע הנוכחי: " + settings.Info.DisplayName +
+                              "   (מודל: " + settings.EffectiveModel + ")");
+            Console.WriteLine();
+            Console.WriteLine(deep
+                ? "בודק את כל המנועים, זה עשוי לקחת רגע..."
+                : "להוספת בדיקת חיבור בפועל: sadar engines --check");
+            Console.WriteLine();
+
+            foreach (var st in EngineFactory.Survey(settings, deep))
+            {
+                bool current = st.Info.Id == settings.EngineId;
+                Console.Write(current ? " * " : "   ");
+                Console.Write(st.Info.Id.PadRight(16));
+                Console.Write(st.Info.DisplayName.PadRight(24));
+
+                if (st.Problem == null && st.Configured)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write(deep ? "מוכן" : "מוגדר");
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write(st.Problem ?? "לא מוגדר");
+                }
+                Console.ResetColor();
+                Console.WriteLine();
+
+                if (!string.IsNullOrEmpty(st.Detail))
+                    Console.WriteLine("        " + st.Detail);
+                else if (!st.Configured)
+                    Console.WriteLine("        " + st.Info.HowToConnect);
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("ההגדרות נשמרות ב: " + EngineSettings.DefaultPath);
+            return 0;
         }
 
+        private static int CmdKey(string[] args)
+        {
+            string id = Arg(args, 1);
+            var info = EngineInfo.ById(id);
+            if (info == null)
+            {
+                Console.WriteLine("שימוש: sadar key <מזהה מנוע> <מפתח>");
+                Console.WriteLine("הרשימה: sadar engines");
+                return 1;
+            }
+
+            if (!info.NeedsApiKey)
+            {
+                Console.WriteLine(info.DisplayName + " עובד דרך המנוי ואינו צריך מפתח.");
+                Console.WriteLine(info.HowToConnect);
+                return 1;
+            }
+
+            var settings = EngineSettings.LoadDefault();
+
+            if (Has(args, "--clear"))
+            {
+                settings.SetKey(info.Id, null);
+                settings.SaveDefault();
+                Console.WriteLine("המפתch נמחק.".Replace("ch", "ח"));
+                return 0;
+            }
+
+            string key = Arg(args, 2);
+            if (string.IsNullOrEmpty(key))
+            {
+                Console.WriteLine("שימוש: sadar key " + info.Id + " <מפתח>");
+                return 1;
+            }
+
+            settings.SetKey(info.Id, key);
+            if (!settings.HasKey(info.Id))
+            {
+                Console.WriteLine("שמירת המפתח נכשלה — הצפנת Windows אינה זמינה.");
+                return 2;
+            }
+
+            settings.SaveDefault();
+            Console.WriteLine("המפתח נשמר עבור " + info.DisplayName + " " + settings.KeyHint(info.Id));
+            Console.WriteLine("הוא מוצפן למשתמש הזה בלבד ואינו קריא ממחשב אחר.");
+            return 0;
+        }
+
+        private static int CmdDoctor()
+        {
+            var settings = EngineSettings.LoadDefault();
+
+            Console.WriteLine("בודק את הסביבה...");
+            Console.WriteLine();
+            Console.WriteLine("המנוע שנבחר: " + settings.Info.DisplayName);
+            Console.WriteLine("מודל: " + settings.EffectiveModel);
+            Console.WriteLine();
+
+            int ready = 0;
+            foreach (var st in EngineFactory.Survey(settings, true))
+            {
+                bool current = st.Info.Id == settings.EngineId;
+                if (st.Ready && st.Configured) ready++;
+
+                Console.Write(current ? " * " : "   ");
+                Console.Write(st.Info.DisplayName.PadRight(26));
+
+                if (st.Ready && st.Configured)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("מוכן");
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine(st.Problem ?? "לא מוגדר");
+                }
+                Console.ResetColor();
+
+                if (!string.IsNullOrEmpty(st.Detail)) Console.WriteLine("      " + st.Detail);
+            }
+
+            Console.WriteLine();
+            if (ready == 0)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("אף מנוע אינו מוכן. \"ניקוי בלבד\" עדיין עובד — הוא רץ מקומית.");
+                Console.ResetColor();
+                return 1;
+            }
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(ready + " מנועים מוכנים לשימוש.");
+            Console.ResetColor();
+            return 0;
+        }
+
+        /// <summary>
+        /// בוחר מנוע: הדגל מנצח, אחריו ההגדרות השמורות.
+        /// "mock" נשאר תמיד זמין — הוא מה שמאפשר לבדוק את כל הצינור בלי רשת.
+        /// </summary>
         // ---------- תצוגה ----------
 
         private static void PrintProposal(Proposal proposal, RulesFile rules)

@@ -1,0 +1,20 @@
+המנוע הנוכחי: קלוד — דרך המנוי   (מודל: sonnet)
+
+בודק את כל המנועים, זה עשוי לקחת רגע...
+
+ * claude-cli      קלוד — דרך המנוי        Claude Code מותקן אך אינו מחובר לחשבון. הריצו בחלון פקודה: claude  ואז /login
+        C:\Users\user\AppData\Roaming\npm\node_modules\@anthropic-ai\claude-code\bin\claude.exe
+   gemini-cli      ג'מיני — דרך המנוי      לא מותקן
+        npm install -g @google/gemini-cli  ואז  gemini  והתחברות עם חשבון גוגל
+   codex-cli       ChatGPT — דרך המנוי     לא מותקן
+        npm install -g @openai/codex  ואז  codex  והתחברות עם חשבון ChatGPT
+   anthropic-api   קלוד — מפתח API         המפתח של Anthropic נדחה. בדקו שהוא הועתק במלואו ושהוא פעיל.
+        ····0000
+   openai-api      ChatGPT — מפתח API      המפתח של OpenAI נדחה. בדקו שהוא הועתק במלואו ושהוא פעיל.
+        ····0000
+   gemini-api      ג'מיני — מפתח API       המפתח של Google נדחה. בדקו שהוא הועתק במלואו ושהוא פעיל.
+        ····0000
+   openrouter-api  OpenRouter — מפתח API   המפתח של OpenRouter נדחה. בדקו שהוא הועתק במלואו ושהוא פעיל.
+        ····0000
+
+ההגדרות נשמרות ב: C:\Users\user\AppData\Roaming\Sadar\מנוע.json

@@ -41,6 +41,18 @@ namespace Sadar.Addin
             rules.Save(RulesPath);
         }
 
+        // ---------- מנוע ----------
+
+        public static Core.Engine.EngineSettings LoadEngine()
+        {
+            return Core.Engine.EngineSettings.LoadDefault();
+        }
+
+        public static void SaveEngine(Core.Engine.EngineSettings settings)
+        {
+            settings.SaveDefault();
+        }
+
         public static void Log(string message)
         {
             try

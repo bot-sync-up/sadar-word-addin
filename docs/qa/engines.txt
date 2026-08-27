@@ -1,0 +1,20 @@
+המנוע הנוכחי: קלוד — דרך המנוי   (מודל: sonnet)
+
+להוספת בדיקת חיבור בפועל: sadar engines --check
+
+ * claude-cli      קלוד — דרך המנוי        מוגדר
+        C:\Users\user\AppData\Roaming\npm\node_modules\@anthropic-ai\claude-code\bin\claude.exe
+   gemini-cli      ג'מיני — דרך המנוי      לא מותקן
+        npm install -g @google/gemini-cli  ואז  gemini  והתחברות עם חשבון גוגל
+   codex-cli       ChatGPT — דרך המנוי     לא מותקן
+        npm install -g @openai/codex  ואז  codex  והתחברות עם חשבון ChatGPT
+   anthropic-api   קלוד — מפתח API         לא הוגדר מפתח
+        מפתח מ-console.anthropic.com
+   openai-api      ChatGPT — מפתח API      לא הוגדר מפתח
+        מפתח מ-platform.openai.com
+   gemini-api      ג'מיני — מפתח API       לא הוגדר מפתח
+        מפתח מ-aistudio.google.com
+   openrouter-api  OpenRouter — מפתח API   לא הוגדר מפתח
+        מפתח מ-openrouter.ai — שער אחד לעשרות מודלים
+
+ההגדרות נשמרות ב: C:\Users\user\AppData\Roaming\Sadar\מנוע.json

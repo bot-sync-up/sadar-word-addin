@@ -69,7 +69,7 @@ function Invoke-Csc {
 
     $baseRefs = @(
         'mscorlib.dll', 'System.dll', 'System.Core.dll', 'System.Xml.dll',
-        'System.Xml.Linq.dll', 'System.Web.Extensions.dll',
+        'System.Xml.Linq.dll', 'System.Web.Extensions.dll', 'System.Security.dll',
         'System.IO.Compression.dll', 'System.IO.Compression.FileSystem.dll'
     )
     foreach ($r in $baseRefs) { $cscArgs += "/reference:$fx\$r" }

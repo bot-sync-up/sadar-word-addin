@@ -194,7 +194,9 @@ namespace Sadar.Addin
 
             _adapter = new WordDocumentAdapter(_app, doc);
 
-            IDecisionEngine engine = cleanOnly ? null : new ClaudeCodeEngine();
+            IDecisionEngine engine = cleanOnly
+                ? null
+                : EngineFactory.Create(SettingsStore.LoadEngine());
             _orchestrator = new Orchestrator(_adapter, engine, _rules);
             _orchestrator.Progress += OnProgress;
 

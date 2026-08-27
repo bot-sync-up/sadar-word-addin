@@ -236,123 +236,13 @@ namespace Sadar.Core.Engine
             }
         }
 
+        /// <summary>
+        /// הרצה משותפת לכל מנועי שורת הפקודה. הלוגיקה נמצאת ב-CliProcess
+        /// כדי שתיקון בטיפול בתהליכים יחול על כל המנועים ולא רק על אחד.
+        /// </summary>
         private int Run(string[] args, string stdin, int timeoutMs, out string stdout, out string stderr)
         {
-            bool isCmd = _exePath.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase) ||
-                         _exePath.EndsWith(".bat", StringComparison.OrdinalIgnoreCase);
-
-            var psi = new ProcessStartInfo
-            {
-                FileName = isCmd ? "cmd.exe" : _exePath,
-                UseShellExecute = false,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8,
-                WorkingDirectory = Path.GetTempPath()
-            };
-
-            var sb = new StringBuilder();
-            if (isCmd) sb.Append("/c ").Append(Quote(_exePath));
-            foreach (string a in args)
-            {
-                sb.Append(' ');
-                sb.Append(Quote(a));
-            }
-            psi.Arguments = sb.ToString().TrimStart();
-
-            // הסוכן לא אמור לרשת שום הקשר מהתהליך שקרא לו
-            psi.EnvironmentVariables.Remove("CLAUDECODE");
-            psi.EnvironmentVariables.Remove("CLAUDE_CODE_ENTRYPOINT");
-
-            using (var proc = new Process())
-            {
-                proc.StartInfo = psi;
-
-                var outBuf = new StringBuilder();
-                var errBuf = new StringBuilder();
-
-                proc.OutputDataReceived += (s, e) => { if (e.Data != null) outBuf.AppendLine(e.Data); };
-                proc.ErrorDataReceived += (s, e) => { if (e.Data != null) errBuf.AppendLine(e.Data); };
-
-                proc.Start();
-                proc.BeginOutputReadLine();
-                proc.BeginErrorReadLine();
-
-                if (stdin != null)
-                {
-                    // תהליך שנפל מוקדם סוגר את הצינור, והכתיבה זורקת.
-                    // זו אינה השגיאה האמיתית — היא רק מסתירה את הסיבה,
-                    // שתופיע ב-stderr ותיקרא בהמשך.
-                    try
-                    {
-                        using (var w = new StreamWriter(proc.StandardInput.BaseStream, new UTF8Encoding(false)))
-                        {
-                            w.Write(stdin);
-                            w.Flush();
-                        }
-                    }
-                    catch (IOException) { }
-                    catch (ObjectDisposedException) { }
-                }
-                else
-                {
-                    proc.StandardInput.Close();
-                }
-
-                if (!proc.WaitForExit(timeoutMs))
-                {
-                    try { proc.Kill(); } catch { }
-                    stdout = outBuf.ToString();
-                    stderr = errBuf.ToString();
-                    throw new EngineException(
-                        "Claude Code לא השיב בתוך " + (timeoutMs / 1000) + " שניות. החלון בוטל והמסמך לא נגע.");
-                }
-
-                proc.WaitForExit(); // השלמת קריאת הפלט האסינכרוני
-
-                stdout = outBuf.ToString();
-                stderr = errBuf.ToString();
-                return proc.ExitCode;
-            }
-        }
-
-        /// <summary>
-        /// ציטוט לפי כללי שורת הפקודה של Windows.
-        ///
-        /// רק לוכסן אחורי שקודם לגרש דורש הכפלה. הכפלת כל הלוכסנים —
-        /// טעות נפוצה — הורסת כל נתיב קובץ שמועבר כארגומנט.
-        /// </summary>
-        private static string Quote(string s)
-        {
-            if (string.IsNullOrEmpty(s)) return "\"\"";
-
-            var sb = new StringBuilder(s.Length + 8);
-            sb.Append('"');
-
-            int backslashes = 0;
-            foreach (char c in s)
-            {
-                if (c == '\\') { backslashes++; continue; }
-
-                if (c == '"')
-                {
-                    sb.Append('\\', backslashes * 2 + 1).Append('"');
-                }
-                else
-                {
-                    sb.Append('\\', backslashes);
-                    sb.Append(c);
-                }
-                backslashes = 0;
-            }
-
-            // לוכסנים בסוף מוכפלים, אחרת הם יבריחו את הגרש הסוגר
-            sb.Append('\\', backslashes * 2);
-            sb.Append('"');
-            return sb.ToString();
+            return CliProcess.Run(_exePath, args, stdin, timeoutMs, out stdout, out stderr);
         }
 
         /// <summary>
