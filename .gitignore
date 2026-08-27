@@ -1,0 +1,22 @@
+# פלטי בנייה
+bin/
+dist/
+obj/
+
+# קבצי בדיקה שנוצרים בזמן ריצה
+samples/*.docx
+*.גיבוי-לפני-סידור-*.docx
+build/probe/*.dll
+build/*.log
+*.log
+
+# ארכיון השרשור מהפורום — כתיבה של אנשים אחרים.
+# נשמר מקומית כמקור, ואינו מתפרסם מחדש בריפו ציבורי.
+docs/mitmachim-thread-100957.txt
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# קבצי טיוטה מהפיתוח
+poc/
