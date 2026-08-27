@@ -116,6 +116,8 @@ powershell -ExecutionPolicy Bypass -File build\build.ps1
 | `build\verify.ps1` | בדיקת שפיות על ה-DLL, בלי להתקין ובלי וורד |
 | `build\install.ps1` | רישום והסרה |
 | `build\demo.ps1` | הדגמה מקצה לקצה על ספר בדיקה |
+| `build\diagnose.ps1` | סורק את כל רשימות החסימה של Office |
+| `build\package.ps1` | אורז חבילת הפצה |
 
 ### מבנה
 
@@ -142,6 +144,7 @@ sadar clean <file.docx>                ניקוי מקומי בלבד
 sadar rules init <out.json>            יוצר קובץ כללים לדוגמה
 sadar doctor                           בודק אם Claude Code מותקן ומחובר
 sadar selftest                         מריץ את בדיקות הליבה
+sadar qa                               בדיקות קצה והתנהגות עוינת
 ```
 
 אפשרויות: `--engine mock|claude`, `--rules <file>`, `--model <name>`, `--privacy`
@@ -160,7 +163,7 @@ sadar selftest                         מריץ את בדיקות הליבה
 
 הרעיון עלה בשרשור בפורום מתמחים, שבו מעמדים תיארו את שיטת העבודה הידנית שלהם עם קלוד וביקשו במפורש תוסף שיעשה את זה בתוך וורד. ההתנגדות המרכזית שם — "מנין לך שה-AI לא יחליט פתאום לשנות מילה או שתיים במסמך?" — היא מה שהכתיב את כל הארכיטקטורה.
 
-השרשור המלא שמור ב-`docs/mitmachim-thread-100957.txt`. האפיון המלא ב-`docs/SPEC.md`.
+האפיון המלא, כולל יומן הפריסה וסיבוב ה-QA, נמצא ב-[docs/SPEC.md](docs/SPEC.md).
 
 ---
 
