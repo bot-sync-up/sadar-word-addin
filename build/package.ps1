@@ -25,11 +25,19 @@ Copy-Item (Join-Path $bin 'sadar.exe') "$stage\bin\"
 Copy-Item (Join-Path $bin 'Sadar.Core.dll') "$stage\bin\"
 if (Test-Path (Join-Path $bin 'wordtest.exe')) { Copy-Item (Join-Path $bin 'wordtest.exe') "$stage\bin\" }
 
-foreach ($s in @('install.ps1', 'diagnose.ps1', 'live-check.ps1', 'clear-disabled.ps1', 'force-connect.ps1')) {
+foreach ($s in @('install.ps1', 'launcher.ps1', 'diagnose.ps1', 'live-check.ps1',
+                 'clear-disabled.ps1', 'force-connect.ps1')) {
     Copy-Item (Join-Path $PSScriptRoot $s) "$stage\build\"
 }
 
+# קובצי הלחיצה הכפולה — זה מה שרוב המשתמשים יראו וישתמשו בו.
+# בלעדיהם ההתקנה דורשת הקלדת פקודה, וזה חסם אמיתי בקהל הזה.
+foreach ($c in (Get-ChildItem -Path $root -Filter '*.cmd' -File)) {
+    Copy-Item $c.FullName $stage
+}
+
 Copy-Item (Join-Path $root 'README.md') $stage
+Copy-Item (Join-Path $root 'LICENSE') $stage
 
 # ---- הוראות לבודק ----
 $instructions = @'
@@ -45,19 +53,19 @@ $instructions = @'
 
 שלב 1 — התקנה
 --------------
-סגרו את וורד לגמרי, ואז פתחו PowerShell בתיקייה שחילצתם והריצו:
+סגרו את וורד לגמרי, ולחצו לחיצה כפולה על:
 
-    powershell -ExecutionPolicy Bypass -File build\install.ps1
+    התקן
 
-אין צורך בהרשאות מנהל.
+זה הכל. אין צורך בהרשאות מנהל ואין צורך להקליד שום פקודה.
 
 שלב 2 — הבדיקה
 ---------------
 פתחו את וורד. האם מופיעה לשונית בשם "סַדָּר"?
 
     כן  ->  מצוין. עברו לשלב 3.
-    לא  ->  הריצו:  powershell -ExecutionPolicy Bypass -File build\diagnose.ps1
-            ושלחו לנו את הפלט. זה בדיוק המידע שאנחנו צריכים.
+    לא  ->  לחצו לחיצה כפולה על "בדיקה" ושלחו לנו צילום מסך.
+            זה בדיוק המידע שאנחנו צריכים.
 
 שלב 3 — ניסיון אמיתי
 ---------------------
@@ -82,7 +90,7 @@ $instructions = @'
 
 להסרה
 ------
-    powershell -ExecutionPolicy Bypass -File build\install.ps1 -Uninstall
+לחיצה כפולה על "הסר". הכללים שלכם נשמרים.
 
 מה שהכי יעזור לנו לדעת
 -----------------------
