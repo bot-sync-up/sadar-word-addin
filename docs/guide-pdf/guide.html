@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>סַדָּר — מדריך התקנה</title>
+<style>
+  /* גופנים מקומיים בלבד: הדפסה ברקע אינה ממתינה לגופני רשת, וסינון עלול לחסום אותם */
+  @page { size: A4; margin: 13mm 14mm 14mm 14mm; }
+
+  :root {
+    --navy: #1b2a4a;
+    --navy-soft: #33456b;
+    --cream: #faf6ee;
+    --line: #e4dccb;
+    --gold: #b98a2e;
+    --warn-bg: #fff4e0;
+    --warn-line: #e3a53a;
+    --ok: #2e7d4f;
+    --bad: #b3372f;
+    --text: #1f2430;
+    --muted: #5d6475;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    color: var(--text);
+    font-family: "Segoe UI", "Arial", "Tahoma", sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  a { color: var(--navy); }
+
+  /* ---------- כותרת ---------- */
+  .hero {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 14px;
+    padding: 14px 20px 12px;
+    margin-bottom: 11px;
+    border-bottom: 3px solid var(--gold);
+  }
+  .hero h1 {
+    margin: 0;
+    font-size: 30pt;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    line-height: 1.15;
+  }
+  .hero .sub {
+    margin-top: 4px;
+    font-size: 13pt;
+    color: #dfe5f2;
+  }
+  .hero .tag {
+    margin-top: 8px;
+    font-size: 10.5pt;
+    color: #c9d2e6;
+  }
+
+  /* ---------- קופסאות ---------- */
+  .box {
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 15px;
+    margin: 0 0 10px;
+    break-inside: avoid;
+  }
+  .box h2 {
+    margin: 0 0 6px;
+    font-size: 14pt;
+    color: var(--navy);
+  }
+  .box p { margin: 4px 0; }
+
+  .two {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .two .box { flex: 1; margin: 0; }
+
+  ul.need { margin: 4px 0 0; padding-right: 18px; }
+  ul.need li { margin: 2px 0; }
+
+  /* ---------- חלקים ---------- */
+  .part {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 13px 0 8px;
+    break-after: avoid;
+  }
+  .part .badge {
+    background: var(--navy);
+    color: #fff;
+    font-weight: 800;
+    font-size: 13pt;
+    border-radius: 8px;
+    padding: 2px 11px;
+  }
+  .part h2 {
+    margin: 0;
+    font-size: 16pt;
+    color: var(--navy);
+  }
+  .part .time {
+    color: var(--muted);
+    font-size: 10.5pt;
+  }
+  .part::after {
+    content: "";
+    flex: 1;
+    border-bottom: 2px solid var(--line);
+  }
+
+  /* ---------- שלבים ---------- */
+  .step {
+    display: flex;
+    gap: 12px;
+    margin: 0 0 7px;
+    break-inside: avoid;
+  }
+  .num {
+    flex: 0 0 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: #fff;
+    font-weight: 800;
+    font-size: 12.5pt;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+  .step .body { flex: 1; }
+  .step h3 {
+    margin: 2px 0 3px;
+    font-size: 12.5pt;
+    color: var(--navy);
+  }
+  .step p { margin: 2px 0; }
+
+  .note { color: var(--muted); font-size: 10.5pt; }
+
+  .link {
+    direction: ltr;
+    unicode-bidi: isolate;
+    text-align: left;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 9.8pt;
+    background: #f2f4f8;
+    border: 1px solid #d9deea;
+    border-radius: 6px;
+    padding: 5px 9px;
+    margin: 5px 0;
+    word-break: break-all;
+  }
+
+  .warn {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-line);
+    border-right: 5px solid var(--warn-line);
+    border-radius: 10px;
+    padding: 9px 13px;
+    margin: 3px 0 4px;
+  }
+  .warn strong { color: #8a5a0a; }
+
+  .result {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+    flex-wrap: wrap;
+  }
+  .result span {
+    border-radius: 7px;
+    padding: 3px 10px;
+    font-size: 10.8pt;
+  }
+  .result .ok  { background: #e7f4ec; color: var(--ok);  border: 1px solid #b9dcc6; }
+  .result .bad { background: #fbe9e7; color: var(--bad); border: 1px solid #efc3be; }
+
+  .ui {
+    display: inline-block;
+    background: #eef1f7;
+    border: 1px solid #cfd6e6;
+    border-radius: 5px;
+    padding: 0 6px;
+    font-weight: 600;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .kbd {
+    display: inline-block;
+    direction: ltr;
+    unicode-bidi: isolate;
+    background: #fff;
+    border: 1px solid #b9bfcc;
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 0 5px;
+    font-family: "Consolas", monospace;
+    font-size: 10pt;
+  }
+
+  .quote {
+    border-right: 3px solid var(--gold);
+    background: var(--cream);
+    padding: 6px 12px;
+    margin: 5px 0;
+    border-radius: 6px;
+    font-style: italic;
+  }
+
+  .aside {
+    background: #f4f6fa;
+    border-radius: 8px;
+    padding: 7px 12px;
+    margin-top: 8px;
+    font-size: 10.5pt;
+    color: var(--muted);
+    break-inside: avoid;
+  }
+
+  .shield {
+    background: #eaf3ee;
+    border: 1px solid #c3dfcd;
+    border-radius: 10px;
+    padding: 8px 13px;
+    margin: 8px 0 0;
+    font-size: 10.8pt;
+    break-inside: avoid;
+  }
+
+  .footer {
+    margin-top: 18px;
+    padding-top: 8px;
+    border-top: 2px solid var(--line);
+    text-align: center;
+    color: var(--muted);
+    font-size: 10pt;
+  }
+  .footer b { color: var(--navy); }
+
+  .page-break { break-before: page; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>סַדָּר</h1>
+  <div class="sub">תוסף חינמי לוורד שמסדר מסמכים לפי סגנונות</div>
+  <div class="tag">מדריך התקנה פשוט, צעד אחר צעד. לא צריך להבין במחשבים.</div>
+</div>
+
+<div class="box">
+  <h2>מה התוסף עושה?</h2>
+  <p>הוא מזהה בעצמו את הכותרות במסמך (למשל "סימן א" והנושא שאחריו), מחיל עליהן סגנונות של וורד, ומנקה רווחים כפולים ושורות ריקות מיותרות.</p>
+  <p><strong>הוא לא נוגע באף אות מהטקסט.</strong> לפני כל שינוי התוסף שומר "טביעת אצבע" של כל המלל, ואחרי השינוי בודק אותה שוב. אם השתנתה ולו אות אחת — הכל מתבטל מעצמו.</p>
+  <p>התוסף חינמי לגמרי.</p>
+</div>
+
+<div class="box">
+  <h2>מה צריך?</h2>
+  <ul class="need">
+    <li>מחשב עם Windows</li>
+    <li>וורד שמותקן על המחשב (גרסה 2016 ומעלה). לא וורד שעובד בדפדפן.</li>
+  </ul>
+</div>
+
+<!-- ===================== חלק א ===================== -->
+<div class="part">
+  <span class="badge">א</span>
+  <h2>התקנה</h2>
+  <span class="time">כ-5 דקות</span>
+</div>
+
+<div class="step">
+  <div class="num">1</div>
+  <div class="body">
+    <h3>הורדה</h3>
+    <p>לחצו על הקישור הזה:</p>
+    <div class="link"><a href="https://github.com/bot-sync-up/sadar-word-addin/releases/latest/download/sadar.zip">https://github.com/bot-sync-up/sadar-word-addin/releases/latest/download/sadar.zip</a></div>
+    <p>הקובץ <b>sadar.zip</b> יירד למחשב, בדרך כלל לתיקייה <span class="ui">הורדות</span>.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="num">2</div>
+  <div class="body">
+    <h3>ביטול חסימה</h3>
+    <div class="warn">
+      <strong>⚠ חשוב מאוד.</strong> זה השלב שהכי קל לדלג עליו, ובלעדיו התוסף לא יעבוד.
+    </div>
+    <p>פתחו את תיקיית <span class="ui">הורדות</span> ומצאו את הקובץ <b>sadar</b>.</p>
+    <p>לחצו עליו <b>לחיצה ימנית</b> עם העכבר, ובחרו <span class="ui">מאפיינים</span> (בתחתית הרשימה).</p>
+    <p>בחלון שנפתח, בחלק התחתון, יש תיבה קטנה עם הכיתוב <span class="ui">בטל חסימה</span>. סמנו אותה.</p>
+    <p>לחצו <span class="ui">אישור</span>.</p>
+    <p class="note">אם אין תיבה כזו — מצוין, פשוט המשיכו.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="num">3</div>
+  <div class="body">
+    <h3>חילוץ</h3>
+    <p>לחצו שוב לחיצה ימנית על הקובץ <b>sadar</b>, ובחרו <span class="ui">חלץ הכל</span>.</p>
+    <p>לחצו <span class="ui">חלץ</span>. תיפתח תיקייה חדשה בשם <b>sadar</b>.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="num">4</div>
+  <div class="body">
+    <h3>סגירת וורד</h3>
+    <p>אם וורד פתוח — שמרו את העבודה וסגרו אותו לגמרי.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="num">5</div>
+  <div class="body">
+    <h3>התקנה</h3>
+    <p>בתיקייה <b>sadar</b> שנפתחה, יש קובץ בשם <span class="ui">התקן</span>. לחצו עליו <b>לחיצה כפולה</b>.</p>
+    <p>ייפתח חלון שחור עם כתב — זה תקין. חכו עד שיופיע "סיימנו", ואז הקישו <span class="kbd">Enter</span>.</p>
+    <p class="note">אם במקום זה מופיע חלון כחול שכתוב בו "Windows הגן על המחשב שלך": לחצו על <span class="ui">מידע נוסף</span>, ואז על <span class="ui">הפעל בכל זאת</span>.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="num">6</div>
+  <div class="body">
+    <h3>בדיקה</h3>
+    <p>פתחו את וורד. למעלה, ליד הלשוניות "בית", "הוספה" וכו', אמורה להופיע לשונית חדשה בשם <span class="ui">סַדָּר</span>.</p>
+    <div class="result">
+      <span class="ok">✓ מופיעה? ההתקנה הצליחה.</span>
+      <span class="bad">✗ לא מופיעה? עברו לחלק "אם משהו לא עובד" בסוף.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== חלק ב ===================== -->
+<div class="part">
+  <span class="badge">ב</span>
+  <h2>ניסיון ראשון: ניקוי</h2>
+</div>
+
+<div class="box">
+  <p>זה עובד מיד, בלי שום הגדרה ובלי אינטרנט.</p>
+  <div class="warn" style="margin:6px 0">
+    <strong>חשוב:</strong> בפעם הראשונה נסו על <b>עותק</b> של מסמך, לא על המקור.
+  </div>
+  <p>פתחו מסמך בוורד. לחצו על הלשונית <span class="ui">סַדָּר</span>, ואז על <span class="ui">ניקוי בלבד</span>.</p>
+  <p>תופיע רשימה של מה שהתוסף מתכוון לתקן. לחצו <span class="ui">החל את המסומנים</span>.</p>
+  <p>בסיום תופיע הודעה שהמלל נבדק ולא השתנה.</p>
+  <p>לא אהבתם את התוצאה? <span class="kbd">Ctrl+Z</span> אחד מחזיר הכל.</p>
+</div>
+
+<!-- ===================== חלק ג ===================== -->
+<div class="part">
+  <span class="badge">ג</span>
+  <h2>חיבור לזיהוי כותרות</h2>
+  <span class="time">פעם אחת בלבד</span>
+</div>
+
+<p>כדי שהתוסף יזהה כותרות לבד, הוא צריך "מנוע" של בינה מלאכותית.</p>
+<p>הדרך הכי פשוטה — <b>מפתח של גוגל (ג'מיני)</b>. צריך רק חשבון גוגל רגיל (ג'ימייל).</p>
+
+<div class="step">
+  <div class="num">1</div>
+  <div class="body">
+    <p>היכנסו לכתובת:</p>
+    <div class="link"><a href="https://aistudio.google.com/app/apikey">https://aistudio.google.com/app/apikey</a></div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="num">2</div>
+  <div class="body"><p>התחברו עם חשבון הגוגל שלכם.</p></div>
+</div>
+
+<div class="step">
+  <div class="num">3</div>
+  <div class="body"><p>אם מופיע חלון עם תנאי שימוש — אשרו אותו.</p></div>
+</div>
+
+<div class="step">
+  <div class="num">4</div>
+  <div class="body"><p>לחצו על <span class="ui" dir="ltr">Create API key</span>.</p></div>
+</div>
+
+<div class="step">
+  <div class="num">5</div>
+  <div class="body"><p>יופיע קוד ארוך שמתחיל ב-<span dir="ltr"><b>AIza</b></span>. לחצו על כפתור ההעתקה שלידו.</p></div>
+</div>
+
+<div class="step">
+  <div class="num">6</div>
+  <div class="body"><p>חזרו לוורד. לחצו על הלשונית <span class="ui">סַדָּר</span>, ואז על <span class="ui">מנוע</span>.</p></div>
+</div>
+
+<div class="step">
+  <div class="num">7</div>
+  <div class="body"><p>ברשימה, בחרו <span class="ui">ג'מיני — מפתח API</span>.</p></div>
+</div>
+
+<div class="step">
+  <div class="num">8</div>
+  <div class="body"><p>בשדה <span class="ui">מפתח API</span>, לחצו לחיצה ימנית ובחרו <span class="ui">הדבק</span>.</p></div>
+</div>
+
+<div class="step">
+  <div class="num">9</div>
+  <div class="body"><p>לחצו <span class="ui">בדוק חיבור</span>. אמור להופיע "החיבור תקין".</p></div>
+</div>
+
+<div class="step">
+  <div class="num">10</div>
+  <div class="body"><p>לחצו <span class="ui">שמור</span>.</p></div>
+</div>
+
+<div class="shield">
+  <p style="margin:0 0 3px"><b>זהו. זה נעשה פעם אחת בלבד.</b></p>
+  <p style="margin:0">המפתח נשמר מוצפן במחשב שלכם בלבד. התוסף לא שולח את הספר — רק תחילית קצרה של שורות הכותרת. גוף הטקסט לא יוצא מהמחשב.</p>
+</div>
+
+<div class="aside">
+  יש לכם כבר מנוי בתשלום לקלוד או ל-ChatGPT? אפשר להשתמש בו במקום, בלי עלות נוספת — אבל ההגדרה קצת יותר טכנית. בקשו עזרה ממישהו שמתמצא, ההוראות נמצאות באתר.
+</div>
+
+<!-- ===================== חלק ד ===================== -->
+<div class="part">
+  <span class="badge">ד</span>
+  <h2>סידור מסמך</h2>
+</div>
+
+<div class="step">
+  <div class="num">1</div>
+  <div class="body">
+    <p>לחצו <span class="ui">כללים</span>, ותארו במילים שלכם איך הספר בנוי. למשל:</p>
+    <div class="quote">"הספר מחולק לסימנים. שורה קצרה ומודגשת שמתחילה ב'סימן' היא כותרת ראשית. השורה המודגשת שאחריה היא כותרת משנה."</div>
+    <p>לחצו <span class="ui">שמור</span>. <span class="note">(את זה עושים פעם אחת לכל סדרה.)</span></p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="num">2</div>
+  <div class="body">
+    <p>עכשיו לחצו <span class="ui">סדר את המסמך</span>.</p>
+    <p>תופיע טבלה עם כל מה שהתוסף מציע. לחיצה על שורה קופצת למקום במסמך.</p>
+    <p><span style="background:#fff3c4;padding:0 5px;border-radius:4px">שורות צהובות</span> = התוסף לא היה בטוח. כדאי להסתכל עליהן.</p>
+    <p>אפשר להוריד את הסימון משורות שלא רוצים.</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="num">3</div>
+  <div class="body">
+    <p>לחצו <span class="ui">החל את המסומנים</span>.</p>
+    <p class="note">לפני השינוי, התוסף שומר את המסמך ויוצר עותק גיבוי לידו.</p>
+  </div>
+</div>
+
+<!-- ===================== תקלות והסרה ===================== -->
+<div class="two" style="margin-top:12px">
+  <div class="box">
+    <h2>אם משהו לא עובד</h2>
+    <p>בתיקייה <b>sadar</b> יש קובץ בשם <span class="ui">בדיקה</span>. לחצו עליו לחיצה כפולה.</p>
+    <p>צלמו את המסך — אפשר עם המקש <span class="kbd">Print Screen</span> שבמקלדת — ושלחו את התמונה למי ששלח לכם את המדריך הזה.</p>
+    <p class="note">זה בדיוק המידע שצריך כדי לעזור.</p>
+  </div>
+  <div class="box">
+    <h2>הסרה</h2>
+    <p>סגרו את וורד, ולחצו לחיצה כפולה על הקובץ <span class="ui">הסר</span> בתיקייה <b>sadar</b>.</p>
+  </div>
+</div>
+
+<div class="footer">
+  <b>סַדָּר</b> · תוכנה חופשית, קוד פתוח. פותח ונתרם לקהילה.
+</div>
+
+</body>
+</html>
