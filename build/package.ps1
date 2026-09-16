@@ -45,6 +45,11 @@ $guide = Join-Path $root 'docs\מדריך-התקנה.txt'
 if (-not (Test-Path $guide)) { throw "חסר המדריך: $guide" }
 Copy-Item $guide (Join-Path $stage 'קרא אותי.txt')
 
+# אותו מדריך בפורמט להדפסה — מי שמעדיף לקרוא מסודר או להדפיס
+$guidePdf = Join-Path $root 'docs\מדריך-התקנה.pdf'
+if (-not (Test-Path $guidePdf)) { throw "חסר המדריך בפורמט PDF: $guidePdf" }
+Copy-Item $guidePdf (Join-Path $stage 'מדריך התקנה.pdf')
+
 Compress-Archive -Path $stage -DestinationPath $zip -Force
 
 $size = [math]::Round((Get-Item $zip).Length / 1KB, 1)
